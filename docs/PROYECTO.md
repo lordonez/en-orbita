@@ -20,7 +20,7 @@
 - **Proveedor LLM:** **Amazon Bedrock Runtime** utilizando el modelo **Amazon Nova Lite** (`amazon.nova-lite-v1:0` en `us-east-2`) a través de la API `Converse` de Boto3.
 - **Sin Access Keys en `.env`:** Se utiliza la cadena estándar de credenciales de AWS (`AWS_PROFILE=en-orbita`).
 - **No Generación Audiovisual Directa:** El producto genera borradores de guion estructurados y sugerencias visuales descriptivas. No produce ni publica archivos de video ni audio.
-- **Sin Invención ni Inferencia Científica:** El sistema no calcula órbitas, no predice trayectorias de impacto ni inventa visibilidad local. La información factual proviene estrictamente del código de selección sobre la API oficial.
+- **Sin Invención ni Inferencia Científica:** El sistema no calcula órbitas, no predice trayectorias de impacto ni inventa visibilidad local. La información factual proviene strictly del código de selección sobre la API oficial.
 - **Sin Agentes Autónomos:** El patrón arquitectónico es una orquestación determinista guiada por código con llamada directa al LLM. No se utilizan frameworks de agentes autónomos.
 - **Firma / Revisión Humana:** Todo guion generado se marca con `requires_human_review: true` y estado `draft_pending_review`. La aprobación editorial para publicación es un proceso humano externo no automatizado en esta fase.
 
@@ -74,13 +74,13 @@
 
 ## 4. Estado Actual del Avance por Sesiones
 
-| Sesión | Tema / Entregable | Estado | Evidencias / Enlace |
-| :--- | :--- | :---: | :--- |
-| **Sesión 1 & 2** | Ficha del caso, contratos de entrada/salida y consulta real a JPL CAD API | **Implementado y Verificado** | [`evidencias/sesion-02/consulta_jpl_real.json`](file:///d:/Work/En%20Orbita/evidencias/sesion-02/consulta_jpl_real.json) |
-| **Sesión 3** | Flujo JPL → Bedrock Nova Lite, validación Pydantic, auth (401) y 3 ejecuciones de mediciones | **Implementado y Verificado** | [`evidencias/sesion-03/respuesta_bedrock_real.json`](file:///d:/Work/En%20Orbita/evidencias/sesion-03/respuesta_bedrock_real.json)<br>[`evidencias/sesion-03/mediciones_sesion3.json`](file:///d:/Work/En%20Orbita/evidencias/sesion-03/mediciones_sesion3.json) |
-| **Sesión 4** | Diagrama de arquitectura, responsabilidades de patrón y traza real con Langfuse | **Implementado y Verificado** | [`evidencias/sesion-04/traza_langfuse.json`](file:///d:/Work/En%20Orbita/evidencias/sesion-04/traza_langfuse.json)<br>[`evidencias/sesion-04/traza_langfuse.png`](file:///d:/Work/En%20Orbita/evidencias/sesion-04/traza_langfuse.png) |
-| **Sesión 5** | 5 Casos de prueba deterministas (pytest) y evaluación de calidad con DeepEval (G-Eval) | **Trabajo Posterior** | `evidencias/sesion-05/evaluacion_deepeval.json` *(pendiente)* |
-| **Sesión 6** | Demostración funcional (5 min), plan de operación final y entrega definitiva | **Trabajo Posterior** | `evidencias/final/plan_operacion.md` *(pendiente)* |
+| Sesión | Tema / Entregable | Estado | Commit / Evidencias Relativas | Observaciones del Docente |
+| :--- | :--- | :---: | :--- | :--- |
+| **Sesión 1 & 2** | Ficha del caso, contratos de entrada/salida y consulta real a JPL CAD API | **Implementado y Verificado** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d)<br>[`evidencias/sesion-02/consulta_jpl_real.json`](evidencias/sesion-02/consulta_jpl_real.json) | Sin observación registrada |
+| **Sesión 3** | Flujo JPL → Bedrock Nova Lite, validación Pydantic, auth (401) y 3 ejecuciones de mediciones | **Implementado y Verificado** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d)<br>[`evidencias/sesion-03/respuesta_bedrock_real.json`](evidencias/sesion-03/respuesta_bedrock_real.json)<br>[`evidencias/sesion-03/mediciones_sesion3.json`](evidencias/sesion-03/mediciones_sesion3.json) | Sin observación registrada |
+| **Sesión 4** | Diagrama de arquitectura, responsabilidades de patrón y traza real con Langfuse | **Implementado y Verificado** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d)<br>[`evidencias/sesion-04/traza_langfuse.json`](evidencias/sesion-04/traza_langfuse.json)<br>[`evidencias/sesion-04/traza_langfuse.png`](evidencias/sesion-04/traza_langfuse.png) | Sin observación registrada |
+| **Sesión 5** | 5 Casos de prueba deterministas (pytest) y evaluación de calidad con DeepEval (G-Eval) | **Trabajo Posterior** | `evidencias/sesion-05/evaluacion_deepeval.json` *(pendiente)* | Sin observación registrada |
+| **Sesión 6** | Demostración funcional (5 min), plan de operación final y entrega definitiva | **Trabajo Posterior** | `evidencias/final/plan_operacion.md` *(pendiente)* | Sin observación registrada |
 
 ---
 
