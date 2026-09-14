@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "session": "Sesión 4: Trazabilidad y Observabilidad con Langfuse",
+    "timestamp_utc": "2026-09-09T05:47:21.910526+00:00",
+    "environment": {
+      "python_version": "3.13.0",
+      "aws_profile": "en-orbita",
+      "aws_region": "us-east-2",
+      "model_id": "amazon.nova-lite-v1:0",
+      "langfuse_enabled": false
+    },
+    "trace_id": "b0248daa-dd6d-44bc-8c42-0fa0219a1007",
+    "name": "generate_script_flow",
+    "user_id": "academic_user"
+  },
+  "spans": [
+    {
+      "id": "span-jpl-01",
+      "name": "jpl_cad_query",
+      "type": "span",
+      "duration_ms": 1123.27,
+      "input": {
+        "body": "Earth",
+        "date-min": "2026-09-08",
+        "date-max": "2026-09-30",
+        "dist-max": "0.05",
+        "sort": "dist"
+      },
+      "output": {
+        "count": 1,
+        "selected_object": "(2026 RN2)",
+        "dist_au": 0.001484,
+        "dist_km": 221933.43,
+        "dist_ld": 0.58
+      }
+    },
+    {
+      "id": "span-factual-02",
+      "name": "factual_card_builder",
+      "type": "span",
+      "duration_ms": 2.15,
+      "input": {
+        "selected_object": "(2026 RN2)"
+      },
+      "output": {
+        "objeto": "(2026 RN2)",
+        "fecha_tdb": "2026-Sep-08 13:51 TDB",
+        "distancia_nominal_km": 221933.43
+      }
+    },
+    {
+      "id": "gen-bedrock-03",
+      "name": "bedrock_nova_lite_generation",
+      "type": "generation",
+      "duration_ms": 4991.09,
+      "model": "amazon.nova-lite-v1:0",
+      "usage": {
+        "prompt_tokens": 538,
+        "completion_tokens": 472,
+        "total_tokens": 1010
+      },
+      "output_summary": {
+        "title": "Aproximación del asteroide (2026 RN2) a la Tierra en 2026",
+        "status": "draft_pending_review",
+        "word_count": 176,
+        "requires_human_review": true
+      }
+    }
+  ],
+  "total_duration_ms": 6117.44,
+  "status": "200 OK"
+}

@@ -1,0 +1,50 @@
+name: CI Workflow - En órbita
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-and-tests:
+    name: Lint, Format and Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install reproducible dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Ruff Lint
+        run: python -m ruff check .
+
+      - name: Run Ruff Format Check
+        run: python -m ruff format --check .
+
+      - name: Run Pytest Suite
+        run: python -m pytest -v
+        env:
+          APP_API_KEY: ci-secret-test-key-12345
+          AWS_PROFILE: en-orbita
+          AWS_REGION: us-east-2
+          BEDROCK_MODEL_ID: amazon.nova-lite-v1:0
+          LANGFUSE_ENABLED: "false"

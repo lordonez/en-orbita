@@ -1,0 +1,58 @@
+{
+  "metadata": {
+    "session": "Sesión 2: Contrato y Consulta Real JPL",
+    "timestamp_utc": "2026-09-09T05:45:25.533301+00:00",
+    "environment": {
+      "python_version": "3.13.0",
+      "aws_profile": "en-orbita",
+      "aws_region": "us-east-2"
+    },
+    "query_parameters": {
+      "date-min": "2026-09-08",
+      "date-max": "2026-09-30",
+      "body": "Earth",
+      "dist-max": "0.05",
+      "sort": "dist",
+      "limit": "10",
+      "fullname": "true"
+    },
+    "jpl_duration_ms": 1183.94
+  },
+  "source_info": {
+    "provider": "NASA/JPL SBDB Close-Approach Data API",
+    "endpoint": "https://ssd-api.jpl.nasa.gov/cad.api",
+    "query_params": {
+      "date-min": "2026-09-08",
+      "date-max": "2026-09-30",
+      "body": "Earth",
+      "dist-max": "0.05",
+      "sort": "dist",
+      "limit": "10",
+      "fullname": "true"
+    },
+    "retrieved_at": "2026-09-09T05:45:25.533323+00:00"
+  },
+  "normalized_event": {
+    "object_fullname": "(2026 RN2)",
+    "cd_date_str": "2026-Sep-08 13:51 TDB",
+    "dist_au": 0.001484,
+    "dist_km": 221933.43,
+    "dist_ld": 0.58,
+    "v_rel_kms": 12.13,
+    "v_inf_kms": 11.98,
+    "h_mag": 29.34
+  },
+  "factual_card": {
+    "objeto": "(2026 RN2)",
+    "fecha_aproximacion_tdb": "2026-Sep-08 13:51 TDB",
+    "distancia_nominal_au": 0.001484,
+    "distancia_nominal_km": 221933.43,
+    "distancia_nominal_ld": 0.58,
+    "velocidad_relativa_kms": 12.13,
+    "velocidad_infinito_kms": 11.98,
+    "magnitud_absoluta_h": 29.34,
+    "cuerpo_central": "Tierra",
+    "escala_tiempo": "TDB (Barycentric Dynamical Time - JPL)",
+    "fuente": "NASA/JPL Small-Body Database Close-Approach Data API"
+  }
+}

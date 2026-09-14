@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "session": "Sesión 3: Flujo JPL -> Bedrock Nova Lite",
+    "timestamp_utc": "2026-09-09T05:45:55.492109+00:00",
+    "environment": {
+      "python_version": "3.13.0",
+      "aws_profile": "en-orbita",
+      "aws_region": "us-east-2",
+      "model_id": "amazon.nova-lite-v1:0"
+    },
+    "input_payload": {
+      "start_date": "2026-09-08",
+      "end_date": "2026-09-30",
+      "video_format": "news_brief",
+      "duration_seconds": 90,
+      "target_audience": "general",
+      "tone": "informative"
+    },
+    "http_status": 200
+  },
+  "response": {
+    "request_id": "b0248daa-dd6d-44bc-8c42-0fa0219a1007",
+    "status": "draft_pending_review",
+    "video_config": {
+      "start_date": "2026-09-08",
+      "end_date": "2026-09-30",
+      "video_format": "news_brief",
+      "duration_seconds": 90,
+      "target_audience": "general",
+      "tone": "informative"
+    },
+    "selected_event": {
+      "object_fullname": "(2026 RN2)",
+      "cd_date_str": "2026-Sep-08 13:51 TDB",
+      "dist_au": 0.001484,
+      "dist_km": 221933.43,
+      "dist_ld": 0.58,
+      "v_rel_kms": 12.13,
+      "v_inf_kms": 11.98,
+      "h_mag": 29.34
+    },
+    "selection_criterion": "Menor distancia nominal (dist) en el rango de fechas consultado",
+    "source_info": {
+      "provider": "NASA/JPL SBDB Close-Approach Data API",
+      "endpoint": "https://ssd-api.jpl.nasa.gov/cad.api",
+      "query_params": {
+        "date-min": "2026-09-08",
+        "date-max": "2026-09-30",
+        "body": "Earth",
+        "dist-max": "0.05",
+        "sort": "dist",
+        "limit": "10",
+        "fullname": "true"
+      },
+      "retrieved_at": "2026-09-09T05:45:49.370560+00:00"
+    },
+    "factual_card": {
+      "objeto": "(2026 RN2)",
+      "fecha_aproximacion_tdb": "2026-Sep-08 13:51 TDB",
+      "distancia_nominal_au": 0.001484,
+      "distancia_nominal_km": 221933.43,
+      "distancia_nominal_ld": 0.58,
+      "velocidad_relativa_kms": 12.13,
+      "velocidad_infinito_kms": 11.98,
+      "magnitud_absoluta_h": 29.34,
+      "cuerpo_central": "Tierra",
+      "escala_tiempo": "TDB (Barycentric Dynamical Time - JPL)",
+      "fuente": "NASA/JPL Small-Body Database Close-Approach Data API"
+    },
+    "script": {
+      "title": "Aproximación del asteroide (2026 RN2) a la Tierra en 2026",
+      "opening": "En septiembre de 2026, un asteroide denominado (2026 RN2) se acercará peligrosamente a nuestro planeta. Este objeto celeste pasará a una distancia nominal de aproximadamente 221,933 kilómetros de la Tierra, lo que equivale a menos de seis veces la distancia a la Luna.",
+      "development": "El evento de aproximación está previsto para el 8 de septiembre de 2026 a las 13:51 TDB (Tiempo Dinámico Baricéntrico). A una velocidad relativa de 12.13 kilómetros por segundo, el asteroide se moverá mucho más rápido que un misil balístico intercontinental. Aunque la magnitud absoluta de (2026 RN2) es de 29.34, es demasiado tenue para ser visible a simple vista. La NASA y el JPL están monitoreando este evento de cerca para entender mejor las características y trayectorias de los objetos cercanos a la Tierra.",
+      "closure": "Este acercamiento nos recuerda la importancia de estar preparados para eventos espaciales impredecibles. Aunque la probabilidad de impacto es baja, eventos como este nos impulsan a mejorar nuestra vigilancia y tecnologías de defensa planetaria."
+    },
+    "visual_proposals": [
+      "Animación de la trayectoria del asteroide (2026 RN2) acercándose a la Tierra.",
+      "Comparativa visual de la distancia nominal en kilómetros y en términos de distancias lunares.",
+      "Ilustración de la velocidad relativa del asteroide en comparación con misiles balísticos.",
+      "Imagen del sistema solar destacando la órbita de (2026 RN2) y su punto de aproximación más cercano a la Tierra."
+    ],
+    "word_count": 176,
+    "estimated_duration_seconds": 70.4,
+    "reading_speed_wpm": 150,
+    "observations": [
+      "Utilizar gráficos claros y animaciones para explicar conceptos complejos.",
+      "Mantener un tono calmado y educativo para asegurar que el público general comprenda la información.",
+      "Reforzar la importancia de la vigilancia espacial y la preparación para eventos como este."
+    ],
+    "requires_human_review": true
+  }
+}
