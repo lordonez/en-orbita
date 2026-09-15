@@ -28,7 +28,7 @@ Repositorio: https://github.com/lordonez/en-orbita
   ```
 - **Salida esperada**: JSON con `request_id`, `status: draft_pending_review`, datos del evento seleccionado `(2026 RN2)`, ficha factual limpia de respaldo, guion dividido en apertura, desarrollo y cierre, sugerencias visuales, conteo de palabras, duración estimada de locución y la marca `requires_human_review: true`.
 - **Trabajo del código**: Consulta la API de JPL CAD (`body=Earth`, `dist-max=0.05`, `sort=dist`, `limit=10`), convierte unidades determinísticamente (AU a kilómetros y Distancias Lunares LD), selecciona la aproximación con menor distancia nominal y construye la ficha factual de respaldo.
-- **Trabajo del LLM**: Adapta la ficha factual factual al formato (`news_brief`), público objetivo (ej. `children` para niños de 8 a 12 años con lenguaje sencillo), duración y tono deseados en español, generando el guion estructurado y propuestas visuales.
+- **Trabajo del LLM**: Adapta la ficha factual al formato (`news_brief`), público objetivo (ej. `children` para niños de 8 a 12 años con lenguaje sencillo), duración y tono deseados en español, generando el guion estructurado y propuestas visuales.
 - **Alcance**: Sí resuelve la consulta oficial a la NASA, normalización de datos, selección determinista y generación de borrador de guion con Amazon Bedrock Nova Lite. Queda fuera: generación audiovisual (audio/video), cálculo de órbitas o predicción de impactos, y publicación automatizada.
 
 ---
@@ -111,40 +111,36 @@ graph TD
 
 ## Sesión 5 · Evaluación y correcciones
 
-[Pendiente de ejecución para la Sesión 5]
-
 Explica cuáles son ejecuciones reales y cuáles usan dependencias controladas para reproducir un fallo. Los casos deben pertenecer a tu aplicación, no ser resultados copiados del lab.
 
 | Caso | Entrada | Resultado esperado | Resultado obtenido | Evidencia | Conclusión |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Válido | `start_date: 2026-09-08`, `end_date: 2026-09-30`, público general | Guion adaptado con respaldo factual | [Pendiente Sesión 5] | `../evidencias/sesion-05/evaluacion_deepeval.json` | [Pendiente] |
-| Variante válida | Mismos datos, `target_audience: children` | Lenguaje adaptado a 8-12 años con analogías sencillas | [Pendiente Sesión 5] | `../evidencias/sesion-05/evaluacion_deepeval.json` | [Pendiente] |
-| Datos faltantes | Omisión de `end_date` | Rechazo 422 Unprocessable Entity | [Pendiente Sesión 5] | [`../tests/test_generate.py`](../tests/test_generate.py) | [Pendiente] |
-| Datos inválidos | `duration_seconds: 500` o fechas invertidas | Rechazo 422 Unprocessable Entity | [Pendiente Sesión 5] | [`../tests/test_generate.py`](../tests/test_generate.py) | [Pendiente] |
-| Proveedor falla o no devuelve resultados | Rango sin eventos coincidentes | Retorno de status `no_events` sin consumir LLM | [Pendiente Sesión 5] | [`../tests/test_generate.py`](../tests/test_generate.py) | [Pendiente] |
+| Válido | [entrada] | [referencia] | [resultado] | [archivo] | [aprobó/falló y por qué] |
+| Variante válida | [condición diferente] | [referencia] | [resultado] | [archivo] | [conclusión] |
+| Datos faltantes | [entrada] | [aclaración/error definido] | [resultado] | [archivo] | [conclusión] |
+| Datos inválidos | [entrada] | [rechazo definido] | [resultado] | [archivo] | [conclusión] |
+| Proveedor falla o no devuelve resultados | [condición controlada o real] | [comportamiento definido] | [resultado] | [archivo] | [conclusión] |
 
-- **Pruebas deterministas**: Comando `pytest -v` (ejecuta 9 pruebas unitarias e integrales mockeadas sin consumir API Keys ni tokens externos).
-- **Métrica DeepEval**: Métrica G-Eval para medir consistencia factual frente a la ficha factual y adherencia a los parámetros editoriales (umbral propuesto: 0.8).
-- **Juez, si se usa**: Proveedor Amazon Bedrock / OpenAI para evaluación con DeepEval.
-- **Resultados**: `../evidencias/sesion-05/evaluacion_deepeval.json` *(pendiente de ejecución)*.
-- **Corrección realizada**: [Pendiente de registro tras la evaluación de la Sesión 5].
+- **Pruebas deterministas**: [comando, resultado y qué dependencias sustituyen]
+- **Métrica DeepEval**: [nombre, criterio, umbral y casos a los que se aplica]
+- **Juez, si se usa**: [proveedor y modelo]
+- **Resultados**: [archivo con puntajes y razones revisadas]
+- **Corrección realizada**: [problema, cambio y evidencia posterior; si no hubo fallos, describir qué se buscó]
 
 ---
 
 ## Sesión 6 · Demostración y plan de operación
 
-[Pendiente de ejecución para la Sesión 6]
-
-- **Arranque, prueba y detención**: Ver secciones *"Instalación y Configuración"* y *"Ejecución del Servicio Local"* en [`../README.md`](../README.md).
-- **Configuración**: Variables documentadas en [`../.env.example`](../.env.example) (`APP_API_KEY`, `AWS_PROFILE`, `AWS_REGION`, `BEDROCK_MODEL_ID`, `LANGFUSE_ENABLED`).
-- **Acceso y datos**: El cliente envía los parámetros editoriales a FastAPI mediante el encabezado `X-API-Key`. FastAPI consulta la API pública `https://ssd-api.jpl.nasa.gov/cad.api`. La ficha factual construida en código se envía a Amazon Bedrock Runtime Nova Lite (`us-east-2`). Las credenciales de AWS se manejan vía perfil `en-orbita` de la cadena estándar de AWS (nunca almacenadas en código ni en `.env`).
-- **Costo**: Estimación basada en la tarifa oficial de Amazon Nova Lite (región us-east-2): ~$0.00006 por 1,000 input tokens y ~$0.00024 por 1,000 output tokens. Cada generación de guion consume ~1,010 tokens totales con un costo estimado de ~$0.00015 USD por solicitud.
-- **Mantenimiento**: Revisar estructura de respuesta ante cambios en la API de JPL CAD (`fields` y esquema JSON) o actualizaciones del modelo `amazon.nova-lite-v1:0` en AWS Bedrock.
-- **Responsable**: Leonardo Ordóñez.
-- **Ante un fallo**: Errores capturados mediante HTTP exceptions (401, 422, 502, 504, 500) registradas en logs JSON estructurados. Ante un fallo de JPL o Bedrock, el servidor responde con 502/504 evitando reintentos infinitos.
-- **Despliegue**: Entorno local comprobado en Windows 11 / Python 3.13 con Uvicorn y FastAPI. Despliegue en la nube fuera del alcance actual.
-- **Límites y pendientes reales**: Evaluación automatizada con juez DeepEval (Sesión 5) y demostración final (Sesión 6).
-- **Versión final**: Commit `1da47c7e04a25d5deaee03f0ff8237041febd74a` / [`commit 1da47c7`](https://github.com/lordonez/en-orbita/commit/1da47c7e04a25d5deaee03f0ff8237041febd74a).
+- **Arranque, prueba y detención**: [sección del README con instrucciones verificadas]
+- **Configuración**: [variables de .env.example y proveedores necesarios; nunca valores secretos]
+- **Acceso y datos**: [qué datos salen a cada proveedor y cómo proteges la ruta]
+- **Costo**: [estimación con supuestos y fuente de precios; o costo observado de la prueba identificado como tal]
+- **Mantenimiento**: [qué revisar cuando cambie una API, dependencia o modelo]
+- **Responsable**: [quién atiende la aplicación y revisa sus resultados]
+- **Ante un fallo**: [cómo detectarlo, detener/reintentar y avisar al usuario]
+- **Despliegue**: [entorno local comprobado y estrategia futura; no afirmar una publicación que no se hizo]
+- **Límites y pendientes reales**: [qué no está comprobado y por qué]
+- **Versión final**: [commit o nombre del ZIP]
 
 ---
 
@@ -152,9 +148,9 @@ Explica cuáles son ejecuciones reales y cuáles usan dependencias controladas p
 
 Entrega hasta las 23:59, hora de Perú. Incluye las correcciones surgidas en la exposición y el paquete completo indicado en la guía del proyecto.
 
-- **Observaciones de la sesión 6**: [Pendiente]
-- **Correcciones y comprobación**: [Pendiente]
-- **Commit o ZIP definitivo**: [Pendiente]
+- **Observaciones de la sesión 6**: [qué se pidió mejorar]
+- **Correcciones y comprobación**: [cambio y evidencia]
+- **Commit o ZIP definitivo**: [versión]
 
 ---
 
@@ -168,6 +164,6 @@ Cada fila apunta a una versión revisable. Los enlaces a evidencias deben funcio
 | **2** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-02/consulta_jpl_real.json`](../evidencias/sesion-02/consulta_jpl_real.json) | Sin observación registrada |
 | **3** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-03/respuesta_bedrock_real.json`](../evidencias/sesion-03/respuesta_bedrock_real.json)<br>[`../evidencias/sesion-03/mediciones_sesion3.json`](../evidencias/sesion-03/mediciones_sesion3.json) | Sin observación registrada |
 | **4** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-04/traza_langfuse.json`](../evidencias/sesion-04/traza_langfuse.json)<br>[`../evidencias/sesion-04/traza_langfuse.png`](../evidencias/sesion-04/traza_langfuse.png) | Sin observación registrada |
-| **5** | [Pendiente] | `../evidencias/sesion-05/evaluacion_deepeval.json` | [Pendiente] |
-| **6 · Exposición** | [Pendiente] | Demo y evidencia final | [Pendiente] |
-| **Domingo posterior · Final** | [`commit 1da47c7`](https://github.com/lordonez/en-orbita/commit/1da47c7e04a25d5deaee03f0ff8237041febd74a) | Paquete completo publicado en GitHub | Sin observación registrada |
+| **5** | [versión] | [evaluación] | [comentario] |
+| **6 · Exposición** | [versión demostrada] | [demo y evidencia] | [observaciones] |
+| **Domingo posterior · Final** | [commit o ZIP final] | [paquete completo] | [correcciones incorporadas] |
