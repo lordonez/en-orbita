@@ -111,21 +111,27 @@ graph TD
 
 ## Sesión 5 · Evaluación y correcciones
 
-Explica cuáles son ejecuciones reales y cuáles usan dependencias controladas para reproducir un fallo. Los casos deben pertenecer a tu aplicación, no ser resultados copiados del lab.
+Evaluación realizada sobre el Golden Dataset v2 autoritativo de 100 casos. A continuación se presentan los cinco casos representativos exigidos por la plantilla académica:
 
 | Caso | Entrada | Resultado esperado | Resultado obtenido | Evidencia | Conclusión |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Válido | [entrada] | [referencia] | [resultado] | [archivo] | [aprobó/falló y por qué] |
-| Variante válida | [condición diferente] | [referencia] | [resultado] | [archivo] | [conclusión] |
-| Datos faltantes | [entrada] | [aclaración/error definido] | [resultado] | [archivo] | [conclusión] |
-| Datos inválidos | [entrada] | [rechazo definido] | [resultado] | [archivo] | [conclusión] |
-| Proveedor falla o no devuelve resultados | [condición controlada o real] | [comportamiento definido] | [resultado] | [archivo] | [conclusión] |
+| **Válido** | `{"start_date": "2026-09-08", "end_date": "2026-09-30", "video_format": "short", "duration_seconds": 30}` | HTTP 200, `status: draft_pending_review`, `requires_human_review: true` | HTTP 200 OK (`draft_pending_review`). `structured_facts_check`=1.00, `factual_consistency`=0.90. | [`../evidencias/sesion-05/evaluacion_corregida.json`](../evidencias/sesion-05/evaluacion_corregida.json) | Ejecución real con Nova Micro y Nova Lite (fixture `normal.json`). Aprobó tras alinear la rúbrica del juez. |
+| **Variante válida** | `{"start_date": "2026-09-08", "target_audience": "children", "duration_seconds": 30}` | HTTP 200 OK, adaptación didáctica a niños sin perder rigor | HTTP 200 OK (`draft_pending_review`). `structured_facts_check`=1.00, `factual_consistency`=0.90. | [`../evidencias/sesion-05/evaluacion_corregida.json`](../evidencias/sesion-05/evaluacion_corregida.json) | Ejecución real con Nova Micro y Nova Lite. Aprobó al reconocer redondeos pedagógicos dentro de tolerancia. |
+| **Datos faltantes** | `{"end_date": "2026-09-30"}` (sin `start_date`) | HTTP 422 Unprocessable Entity determinista | HTTP 422 Unprocessable Entity (`http_error`). Cero llamadas a APIs externas. | [`../evidencias/sesion-05/evaluacion_corregida.json`](../evidencias/sesion-05/evaluacion_corregida.json) | Validación estática de esquema Pydantic sin invocar LLMs ni JPL. Aprobó. |
+| **Datos inválidos** | `{"start_date": "2026-09-08", "end_date": "2026-09-01"}` (fechas invertidas) | HTTP 422 Unprocessable Entity determinista | HTTP 422 Unprocessable Entity (`http_error`). Cero llamadas a APIs externas. | [`../evidencias/sesion-05/evaluacion_corregida.json`](../evidencias/sesion-05/evaluacion_corregida.json) | Validación estática de esquema Pydantic sin invocar LLMs ni JPL. Aprobó. |
+| **Proveedor sin resultados** | Consulta a JPL CAD con fixture `no_events.json` | HTTP 200 OK con `status: no_events` sin invocar LLM | HTTP 200 OK (`no_events`). Cero llamadas a Amazon Bedrock. | [`../evidencias/sesion-05/evaluacion_corregida.json`](../evidencias/sesion-05/evaluacion_corregida.json) | Manejo determinista de ausencia de aproximaciones o fallos controlados (HTTP 502/504). Aprobó. |
 
-- **Pruebas deterministas**: [comando, resultado y qué dependencias sustituyen]
-- **Métrica DeepEval**: [nombre, criterio, umbral y casos a los que se aplica]
-- **Juez, si se usa**: [proveedor y modelo]
-- **Resultados**: [archivo con puntajes y razones revisadas]
-- **Corrección realizada**: [problema, cambio y evidencia posterior; si no hubo fallos, describir qué se buscó]
+- **Pruebas deterministas**: Suite `pytest -v` (32 pruebas automatizadas pasadas en 29.22s) y validador de solo lectura `python -m scripts.validate_golden_dataset` (100% de cumplimiento en 100 casos v2). Sustituyen dependencias externas (API de JPL CAD y Bedrock Runtime) usando 10 fixtures JSON locales y mocks deterministas en CI/CD.
+- **Métrica DeepEval**:
+  - `factual_consistency`: Umbral `0.80`. Mide que las afirmaciones presentes concuerden con la ficha de JPL sin penalizar omisiones ni formatos equivalentes. Aplicada a 70 casos generativos.
+  - `task_completion`: Umbral `0.80`. Mide la cobertura de hechos obligatorios y cumplimiento de formato, audiencia, tono y estructura. Aplicada a 60 casos generativos.
+  - `security`: Umbral `0.90`. Mide resistencia a inyecciones indirectas en datos JPL y protección de secretos. Aplicada a 10 casos adversariales.
+- **Juez**: Proveedor: Amazon Bedrock — Modelo: Amazon Nova Lite (`amazon.nova-lite-v1:0`) — Región: `us-east-2`.
+- **Resultados**: Evidencias iniciales en [`../evidencias/sesion-05/evaluacion_inicial.json`](../evidencias/sesion-05/evaluacion_inicial.json) y [`../evidencias/sesion-05/evaluacion_inicial.md`](../evidencias/sesion-05/evaluacion_inicial.md). Reevaluación parcial en [`../evidencias/sesion-05/reevaluacion_factual.json`](../evidencias/sesion-05/reevaluacion_factual.json). Resultados consolidados corregidos en [`../evidencias/sesion-05/evaluacion_corregida.json`](../evidencias/sesion-05/evaluacion_corregida.json) y [`../evidencias/sesion-05/evaluacion_corregida.md`](../evidencias/sesion-05/evaluacion_corregida.md). Comparativa antes/después en [`../evidencias/sesion-05/comparacion_antes_despues.md`](../evidencias/sesion-05/comparacion_antes_despues.md).
+- **Corrección realizada**:
+  - *Problema:* El Juez Nova Lite interpretaba formatos numéricos equivalentes (ej. `222,003 km`) y redondeos pedagógicos válidos para niños (`222.000 km`) como inconsistencias factuales, generando 40 fallos en la línea base inicial.
+  - *Cambio:* Se alinearon las rúbricas de `factual_consistency` y `task_completion` del juez en [`../evaluation/metrics/bedrock_nova_judge.py`](../evaluation/metrics/bedrock_nova_judge.py) con las tolerancias, alternativas y semántica declaradas en el ground truth (aceptando separadores de miles/decimales, alternativas AU/km/LD y sin exigir todas las unidades a la vez), sin modificar el dataset, generador, modelos ni umbrales.
+  - *Comprobación:* Se reevaluaron únicamente los 40 casos afectados por `factual_consistency`. La aprobación global aumentó del **58.00%** (58 pasaron) al **79.00%** (79 pasaron), resolviendo 22 fallos de consistencia factual.
 
 ---
 
@@ -164,6 +170,6 @@ Cada fila apunta a una versión revisable. Los enlaces a evidencias deben funcio
 | **2** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-02/consulta_jpl_real.json`](../evidencias/sesion-02/consulta_jpl_real.json) | Sin observación registrada |
 | **3** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-03/respuesta_bedrock_real.json`](../evidencias/sesion-03/respuesta_bedrock_real.json)<br>[`../evidencias/sesion-03/mediciones_sesion3.json`](../evidencias/sesion-03/mediciones_sesion3.json) | Sin observación registrada |
 | **4** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-04/traza_langfuse.json`](../evidencias/sesion-04/traza_langfuse.json)<br>[`../evidencias/sesion-04/traza_langfuse.png`](../evidencias/sesion-04/traza_langfuse.png) | Sin observación registrada |
-| **5** | [versión] | [evaluación] | [comentario] |
+| **5** | [`commit c23d990`](https://github.com/lordonez/en-orbita/commit/c23d9909e503d88d9784c9e37c5b6b454ec4094f) | [`../evidencias/sesion-05/evaluacion_corregida.md`](../evidencias/sesion-05/evaluacion_corregida.md)<br>[`../evidencias/sesion-05/comparacion_antes_despues.md`](../evidencias/sesion-05/comparacion_antes_despues.md) | Alineación de rúbrica del Juez Nova Lite con ground truth. Aprobación global: 79.00%. |
 | **6 · Exposición** | [versión demostrada] | [demo y evidencia] | [observaciones] |
 | **Domingo posterior · Final** | [commit o ZIP final] | [paquete completo] | [correcciones incorporadas] |
