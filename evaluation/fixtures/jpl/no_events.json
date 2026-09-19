@@ -1,0 +1,22 @@
+{
+  "signature": {
+    "source": "NASA/JPL Small-Body Database (SBDB) API",
+    "version": "1.4"
+  },
+  "count": "0",
+  "fields": [
+    "des",
+    "orbit_id",
+    "jd",
+    "cd",
+    "dist",
+    "dist_min",
+    "dist_max",
+    "v_rel",
+    "v_inf",
+    "t_h_m_s",
+    "h",
+    "fullname"
+  ],
+  "data": []
+}

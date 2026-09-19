@@ -86,3 +86,7 @@ class ScriptGenerateResponse(BaseModel):
         default=True,
         description="Indica si el borrador requiere revisión editorial humana obligatoria antes de su publicación",
     )
+    telemetry: dict[str, Any] | None = Field(
+        default=None,
+        description="Metadatos opcionales de telemetría de uso del servicio",
+    )

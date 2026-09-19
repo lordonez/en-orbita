@@ -1,3 +1,4 @@
+import hashlib
 import json
 import time
 from typing import Any, Tuple
@@ -41,7 +42,7 @@ def _invoke_bedrock_sync(
 
     try:
         response = client.converse(
-            modelId=settings.BEDROCK_MODEL_ID,
+            modelId=settings.BEDROCK_GENERATOR_MODEL_ID,
             messages=messages,
             system=system,
             inferenceConfig=inference_config,
@@ -76,11 +77,20 @@ def _invoke_bedrock_sync(
 
     # Extraer uso real de tokens reportado por Bedrock
     usage_raw = response.get("usage", {})
-    usage = {
-        "prompt_tokens": int(usage_raw.get("inputTokens", 0)),
-        "completion_tokens": int(usage_raw.get("outputTokens", 0)),
-        "total_tokens": int(usage_raw.get("totalTokens", 0)),
-    }
+    if "inputTokens" in usage_raw and "outputTokens" in usage_raw:
+        usage = {
+            "prompt_tokens": int(usage_raw["inputTokens"]),
+            "completion_tokens": int(usage_raw["outputTokens"]),
+            "total_tokens": int(usage_raw.get("totalTokens", usage_raw["inputTokens"] + usage_raw["outputTokens"])),
+            "tokens_status": "observed",
+        }
+    else:
+        usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+            "tokens_status": "unavailable",
+        }
 
     return raw_text, usage, duration_ms
 
@@ -161,13 +171,23 @@ Responde únicamente con el JSON solicitado.
     try:
         validated_structure = ScriptStructure.model_validate_json(cleaned_text)
     except Exception as exc:
+        content_sha256 = hashlib.sha256(cleaned_text.encode("utf-8")).hexdigest()
+        sanitized_snippet = cleaned_text[:100].replace("\n", " ")
         logger.error(
-            "Respuesta de Bedrock no cumple el esquema Pydantic",
-            extra={"extra_data": {"raw_text": raw_text, "error": str(exc)}},
+            "Respuesta de Bedrock malformada o inválida contra el esquema Pydantic",
+            extra={
+                "extra_data": {
+                    "model_id": settings.BEDROCK_GENERATOR_MODEL_ID,
+                    "error_type": exc.__class__.__name__,
+                    "content_length": len(cleaned_text),
+                    "content_sha256": content_sha256,
+                    "sanitized_snippet": sanitized_snippet,
+                }
+            },
         )
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al procesar la salida estructurada del modelo de lenguaje.",
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Respuesta no válida del proveedor de modelo de lenguaje.",
         ) from exc
 
     return validated_structure, usage, llm_duration_ms

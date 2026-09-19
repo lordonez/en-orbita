@@ -167,6 +167,10 @@ async def generate_script(
         reading_speed_wpm=150,
         observations=script_structure.observations,
         requires_human_review=True,  # Borrador sujeto a revisión editorial obligatoria
+        telemetry={
+            "llm_tokens": usage,
+            "tokens_status": usage.get("tokens_status", "observed"),
+        },
     )
 
     logger.info(

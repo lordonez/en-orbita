@@ -7,7 +7,13 @@ class Settings(BaseSettings):
     APP_API_KEY: str = ""
     AWS_PROFILE: str = "en-orbita"
     AWS_REGION: str = "us-east-2"
-    BEDROCK_MODEL_ID: str = "amazon.nova-lite-v1:0"
+    BEDROCK_GENERATOR_MODEL_ID: str = "us.amazon.nova-micro-v1:0"
+    BEDROCK_EVALUATOR_MODEL_ID: str = "amazon.nova-lite-v1:0"
+
+    @property
+    def BEDROCK_MODEL_ID(self) -> str:
+        """Propiedad de compatibilidad que retorna el modelo generador."""
+        return self.BEDROCK_GENERATOR_MODEL_ID
 
     LANGFUSE_ENABLED: bool = False
     LANGFUSE_PUBLIC_KEY: str | None = None
