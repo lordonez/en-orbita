@@ -302,11 +302,25 @@ def test_18_cache_v1_not_reused_by_v2(tmp_path):
 
 
 def test_19_new_smoke_selection_v2():
-    results = run_evaluation(smoke=True, max_budget_usd=0.05)
-    assert len(results) == 5
-    expected_ids = {"TC-POS-001", "TC-VAR-001", "TC-ERR-001", "TC-ERR-016", "TC-ADV-001"}
-    actual_ids = {r.case_id for r in results}
-    assert actual_ids == expected_ids
+    with (
+        patch("evaluation.runner.BedrockNovaJudge") as mock_judge_cls,
+        patch("app.services.bedrock_service._invoke_bedrock_sync") as mock_bedrock,
+        patch("evaluation.runner.evaluate_llm_metrics_with_judge", return_value=[]),
+    ):
+        mock_judge = MagicMock()
+        mock_judge.input_tokens = 0
+        mock_judge.output_tokens = 0
+        mock_judge_cls.return_value = mock_judge
+        mock_bedrock.return_value = (
+            '{"title": "T", "opening": "O", "development": "D", "closure": "C", "visual_proposals": [], "observations": []}',
+            {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
+            10.0,
+        )
+        results = run_evaluation(smoke=True, max_budget_usd=0.05)
+        assert len(results) == 5
+        expected_ids = {"TC-POS-001", "TC-VAR-001", "TC-ERR-001", "TC-ERR-016", "TC-ADV-001"}
+        actual_ids = {r.case_id for r in results}
+        assert actual_ids == expected_ids
 
 
 def test_20_correct_cost_projection_calculation():
