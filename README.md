@@ -1,4 +1,4 @@
-# En órbita — Copiloto Editorial para Guiones Espaciales Factuales
+# En órbita — Copiloto Editorial para Guiones de Noticias Espaciales
 
 **"En órbita"** es un copiloto editorial estructurado para la generación de guiones divulgativos sobre fenómenos astronómicos basados en datos oficiales de la NASA/JPL y procesados mediante **Amazon Bedrock Runtime (Amazon Nova Lite)**.
 
