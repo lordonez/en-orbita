@@ -137,16 +137,54 @@ Evaluación realizada sobre el Golden Dataset v2 autoritativo de 100 casos. A co
 
 ## Sesión 6 · Demostración y plan de operación
 
-- **Arranque, prueba y detención**: [sección del README con instrucciones verificadas]
-- **Configuración**: [variables de .env.example y proveedores necesarios; nunca valores secretos]
-- **Acceso y datos**: [qué datos salen a cada proveedor y cómo proteges la ruta]
-- **Costo**: [estimación con supuestos y fuente de precios; o costo observado de la prueba identificado como tal]
-- **Mantenimiento**: [qué revisar cuando cambie una API, dependencia o modelo]
-- **Responsable**: [quién atiende la aplicación y revisa sus resultados]
-- **Ante un fallo**: [cómo detectarlo, detener/reintentar y avisar al usuario]
-- **Despliegue**: [entorno local comprobado y estrategia futura; no afirmar una publicación que no se hizo]
-- **Límites y pendientes reales**: [qué no está comprobado y por qué]
-- **Versión final**: [commit o nombre del ZIP]
+- **Arranque, prueba y detención**: Procedimiento verificado en PowerShell documentado en las secciones 2 y 3 del [`README.md`](../README.md#2-requisitos-y-configuración-de-entorno) y en la evidencia [`../evidencias/sesion-06/verificacion_operativa.md`](../evidencias/sesion-06/verificacion_operativa.md). Se ejecuta `python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000`, se verifica la disponibilidad de `http://127.0.0.1:8000/docs` y `/openapi.json`, se prueban los escenarios 401, 422 y 200, y se detiene de forma limpia con `Ctrl+C`.
+- **Configuración**: Variables obligatorias y opcionales declaradas en [`.env.example`](../.env.example):
+  - `APP_API_KEY`: Clave secreta local para autenticación mediante encabezado `X-API-Key` (obligatoria).
+  - `AWS_PROFILE`: Nombre del perfil local de AWS CLI (`en-orbita`, obligatorio).
+  - `AWS_REGION`: Región de Amazon Bedrock (`us-east-2`, obligatoria).
+  - `BEDROCK_MODEL_ID`: Identificador del modelo generador (`us.amazon.nova-micro-v1:0`, obligatorio).
+  - `LANGFUSE_ENABLED`: Booleano para activar trazabilidad externa (`false` por defecto).
+  - `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST`: Credenciales y host para el dashboard de observabilidad en Langfuse (opcionales).
+  *Proveedores requeridos:* Cuenta de AWS con permisos para Amazon Bedrock Runtime en `us-east-2`, y acceso público saliente a la API de NASA/JPL.
+- **Acceso y datos**:
+  - *Protección del endpoint:* La ruta `POST /scripts/generate` está protegida mediante la cabecera HTTP `X-API-Key` validada en tiempo constante (`secrets.compare_digest`). Peticiones no autorizadas o con claves inválidas son rechazadas con HTTP 401 sin consultar proveedores externos.
+  - *Datos a NASA/JPL CAD API:* Solo se transmiten parámetros de filtrado astronómico público (`date-min`, `date-max`, `body=Earth`, `dist-max=0.05`, `sort=dist`, `limit=10`, `fullname=true`). No se envía información del cliente ni datos sensibles.
+  - *Datos a Amazon Bedrock Runtime:* Se envía la instrucción del sistema editorial y una ficha factual estrictamente restringida a los datos astronómicos normalizados (nombre del asteroide, fecha TDB, distancia en AU/km/LD, velocidad y magnitud). Nunca se envían credenciales ni metadatos de red del cliente.
+  - *Datos a Langfuse (si está activo):* Se envían los metadatos de la traza (`request_id`, duración, tokens consumidos, entrada editorial y salida estructurada). Las claves secretas nunca forman parte del payload de observabilidad.
+- **Costo**:
+  - *Costo observado de una ejecución válida real:* **USD 0.000071** por solicitud (calculado con tarifas oficiales de [Amazon Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/) para Amazon Nova Micro en `us-east-2`, consultadas el 24 de septiembre de 2026):
+    ```text
+    Costo de entrada = (537 / 1000) × USD 0.000035 = USD 0.000018795
+    Costo de salida  = (374 / 1000) × USD 0.000140 = USD 0.000052360
+    Costo total      = USD 0.000071155 ≈ USD 0.000071 por solicitud
+    ```
+  - *Ciclo de evaluación de la Sesión 5:* Tuvo un costo observado combinado de **USD 0.034837**. Este importe incluye la evaluación inicial de 100 casos y una reevaluación parcial posterior a la corrección de la rúbrica del juez.
+  - *Proyección teórica (estimación, no medición):* Aproximadamente **USD 0.071 por 1,000 solicitudes**, suponiendo que cada solicitud consuma los mismos 537 tokens de entrada y 374 tokens de salida observados en esta ejecución. La proyección excluye otros costos de infraestructura, observabilidad, almacenamiento, transferencia, impuestos y variaciones de uso.
+- **Mantenimiento**:
+  - *NASA/JPL CAD API:* Revisar cambios en el esquema JSON de respuesta (claves de `fields` o unidades astronómicas) y monitorear la disponibilidad en `app/services/jpl_service.py`.
+  - *Amazon Bedrock:* Monitorear depreciación de IDs de modelos (`us.amazon.nova-micro-v1:0` y `amazon.nova-lite-v1:0`), actualizar la configuración en `app/config.py` y validar la sintaxis de la API Converse.
+  - *Pydantic:* Al actualizar versiones mayores (`pydantic` y `pydantic-settings`), comprobar que los esquemas de validación y modelos mantengan compatibilidad con FastAPI sin generar advertencias con `python -m pip check`.
+  - *DeepEval:* Comprobar que las rúbricas y adaptadores en `evaluation/metrics/bedrock_nova_judge.py` sigan alineadas con el evaluador ante actualizaciones de la librería.
+  - *Dependencias:* Ejecutar periódicamente `pip check` y la suite determinista `pytest -v` para detectar incompatibilidades de paquetes.
+- **Responsable**: Leonardo Ordóñez (atención de la aplicación, soporte del backend, ejecución de evaluaciones y supervisión editorial de resultados).
+- **Ante un fallo**:
+  - *Detección:* Trazas en tiempo real vía Langfuse vinculadas al `request_id`, logs estructurados en formato JSON con niveles `INFO` y `ERROR`, y métricas de latencia de red.
+  - *Respuesta HTTP:* Manejo determinista mediante códigos estándar: `401 Unauthorized` (auth inválida), `422 Unprocessable Entity` (fechas o rangos inválidos), `502 Bad Gateway` (falla del cliente Bedrock o JPL), y `504 Gateway Timeout` (agotamiento del timeout de red de 10s para JPL o 30s para Bedrock).
+  - *Reintento y contingencia:* No se aplican bucles infinitos de reintento. Ante indisponibilidad transitoria se retorna un mensaje claro al cliente. Si no existen aproximaciones en el rango, se responde `200 OK` con estado limpio `no_events` sin consumir llamadas al LLM.
+  - *Aviso al usuario:* Respuestas estructuradas con campo `detail` explicativo y campo `observations` en respuestas 200, evitando filtración de secretos o trazas internas de la infraestructura.
+- **Despliegue**: El servicio fue comprobado en un entorno local. La estrategia futura de despliegue en la nube todavía no ha sido seleccionada ni verificada.
+- **Límites y pendientes reales**:
+  - *Fidelidad factual y evaluación:* En la evaluación corregida, 79 de 100 casos aprobaron todos los criterios y 21 casos conservaron al menos un criterio no alcanzado. La mayoría de esos 21 resultados correspondió a respuestas generadas que no superaron uno o más umbrales de calidad. Sin embargo, `TC-ADV-004` sí produjo HTTP 502 porque, ante datos externos manipulados, el modelo devolvió una salida incompatible con el esquema esperado. Este resultado se documenta como una limitación de robustez. No hubo errores de ejecución del evaluador (`evaluation_error`).
+    - **18 incidencias de fallo** en la métrica de consistencia factual (`factual_consistency`).
+    - **3 incidencias de fallo** en cumplimiento de la tarea (`task_completion`).
+    - **2 incidencias de fallo** deterministas en hechos estructurados (`structured_facts_check`), superpuestas con casos ya contabilizados como fallidos.
+    - **`TC-ADV-004` produjo HTTP 502** y pertenece al conjunto de casos fallidos.
+    - **0 errores de ejecución del evaluador** (`evaluation_error`).
+  - *Incumplimiento de duración observado:* La ejecución válida respondió correctamente a nivel técnico, pero el guion generado tuvo 150 palabras y una duración estimada de 60 segundos frente a los 90 segundos solicitados. Esto evidencia que el generador todavía puede incumplir parcialmente parámetros editoriales y justifica la revisión humana obligatoria.
+  - *Revisión humana indispensable:* Todo guion emitido conserva mandatoriamente `requires_human_review: true` y estado `draft_pending_review`, requiriendo validación por un editor científico antes de su difusión.
+  - *Muestra de rendimiento:* Las mediciones operativas se sustentan en una muestra controlada en entorno local, sujetas a la variabilidad de latencia de red hacia los endpoints públicos de la NASA y AWS.
+  - *Ausencia de despliegue en la nube:* El servicio opera exclusivamente en local y CI; la estrategia futura de despliegue en la nube todavía no ha sido seleccionada ni verificada.
+- **Versión final**: [Pendiente de confirmación del commit de cierre de la Sesión 6]
 
 ---
 
@@ -171,5 +209,5 @@ Cada fila apunta a una versión revisable. Los enlaces a evidencias deben funcio
 | **3** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-03/respuesta_bedrock_real.json`](../evidencias/sesion-03/respuesta_bedrock_real.json)<br>[`../evidencias/sesion-03/mediciones_sesion3.json`](../evidencias/sesion-03/mediciones_sesion3.json) | Sin observación registrada |
 | **4** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-04/traza_langfuse.json`](../evidencias/sesion-04/traza_langfuse.json)<br>[`../evidencias/sesion-04/traza_langfuse.png`](../evidencias/sesion-04/traza_langfuse.png) | Sin observación registrada |
 | **5** | [`commit c23d990`](https://github.com/lordonez/en-orbita/commit/c23d9909e503d88d9784c9e37c5b6b454ec4094f) | [`../evidencias/sesion-05/evaluacion_corregida.md`](../evidencias/sesion-05/evaluacion_corregida.md)<br>[`../evidencias/sesion-05/comparacion_antes_despues.md`](../evidencias/sesion-05/comparacion_antes_despues.md) | Alineación de rúbrica del Juez Nova Lite con ground truth. Aprobación global: 79.00%. |
-| **6 · Exposición** | [versión demostrada] | [demo y evidencia] | [observaciones] |
+| **6 · Exposición** | Pendiente de commit | [`../evidencias/sesion-06/verificacion_operativa.md`](../evidencias/sesion-06/verificacion_operativa.md) | Verificación operativa completa (protocolo 401, 422 y 200 real), cálculo de costo observado (USD 0.000071) y documentación final. |
 | **Domingo posterior · Final** | [commit o ZIP final] | [paquete completo] | [correcciones incorporadas] |

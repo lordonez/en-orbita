@@ -1,6 +1,6 @@
 # En órbita — Copiloto Editorial para Guiones de Noticias Espaciales
 
-**"En órbita"** es un copiloto editorial estructurado para la generación de guiones divulgativos sobre fenómenos astronómicos basados en datos oficiales de la NASA/JPL y procesados mediante **Amazon Bedrock Runtime (Amazon Nova Lite)**.
+**"En órbita"** es un copiloto editorial estructurado para la generación de guiones divulgativos sobre fenómenos astronómicos basados en datos oficiales de la NASA/JPL y procesados mediante **Amazon Bedrock Runtime (Amazon Nova Micro como generador y Amazon Nova Lite como evaluador/juez)**.
 
 ---
 
@@ -22,19 +22,35 @@ El sistema recibe un rango de fechas y parámetros editoriales (formato, duraci�
 - **Python 3.13.0** (o superior compatible).
 - **AWS CLI** configurado con el perfil `en-orbita` (`AWS_PROFILE=en-orbita`) y credenciales con permiso de invocación a Amazon Bedrock en `us-east-2`.
 
+### Creación y Activación del Entorno Virtual (Windows / PowerShell)
+Desde la carpeta raíz del proyecto (`D:\Work\En Orbita`):
+```powershell
+# Crear entorno virtual
+python -m venv .venv
+
+# Activar en PowerShell
+.\.venv\Scripts\Activate.ps1
+```
+
 ### Instalación de Dependencias Reproducibles
 ```powershell
-# En Windows PowerShell / Cmd
+# Para ejecución en producción / servicio básico:
 pip install -r requirements.txt
+
+# Para desarrollo, suite de pruebas y runner de evaluación:
+pip install -r requirements-dev.txt
+
+# Verificar consistencia del entorno:
+python -m pip check
 ```
 
 ### Variables de Entorno (`.env`)
 Cree un archivo `.env` basado en `.env.example`:
 ```env
-APP_API_KEY=<YOUR_APP_API_KEY>
+APP_API_KEY=en-orbita-key-2026
 AWS_PROFILE=en-orbita
 AWS_REGION=us-east-2
-BEDROCK_MODEL_ID=amazon.nova-lite-v1:0
+BEDROCK_MODEL_ID=us.amazon.nova-micro-v1:0
 
 # Observabilidad Langfuse (Opcional - LANGFUSE_ENABLED=false por defecto)
 LANGFUSE_ENABLED=false
@@ -49,15 +65,22 @@ LANGFUSE_HOST=https://cloud.langfuse.com
 
 ## 3. Ejecución del Servicio Local
 
-Para iniciar el servidor local de desarrollo:
+Para iniciar el servidor local de desarrollo asegurándose de estar en la raíz del proyecto:
 ```powershell
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Acceda a la interfaz Swagger interactiva en el navegador:
-`http://127.0.0.1:8000/docs`
+### Endpoints de Documentación
+* **Swagger UI interactivo:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+* **Especificación OpenAPI (JSON):** [http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
+* **ReDoc alternativo:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
----
+### Detención Limpia del Servicio
+Para detener Uvicorn en PowerShell, presione:
+```text
+Ctrl + C
+```
+El servidor cerrará las conexiones activas y liberará el puerto 8000 de forma ordenada.
 
 ## 4. Uso del Endpoint y Parámetros (`POST /scripts/generate`)
 
@@ -83,43 +106,59 @@ Acceda a la interfaz Swagger interactiva en el navegador:
 - `target_audience`: `children` (8-12 años), `teens`, `general` (defecto), `enthusiasts`.
 - `tone`: `informative` (defecto), `friendly`, `intriguing`, `light_humor`.
 
----
-
 ## 5. Pruebas Automatizadas y Calidad
 
-Ejecute la suite de pruebas unitarias e integrales (con mocks, sin consumo de tokens en CI):
+Ejecute la suite de pruebas unitarias e integrales (con mocks deterministas, sin llamadas externas ni consumo de tokens en CI):
 ```powershell
+# Verificación de integridad de dependencias
+python -m pip check
+
 # Verificación de lint y formato con Ruff
-ruff check .
-ruff format --check .
+python -m ruff check .
+python -m ruff format --check .
 
-# Pruebas deterministas con Pytest
-pytest -v
+# Pruebas deterministas con Pytest (32 tests)
+python -m pytest -v
 ```
 
 ---
 
-## 6. Evidencias Reales Generadas (Sesiones 1 a 4)
+## 6. Evidencias Reales Generadas
 
-Ubicación de evidencias reales colectadas:
-- `evidencias/sesion-02/consulta_jpl_real.json`: Respuesta y normalización de consulta real a NASA/JPL CAD API.
-- `evidencias/sesion-03/respuesta_bedrock_real.json`: Respuesta real completa devuelta por Amazon Bedrock Nova Lite.
-- `evidencias/sesion-03/mediciones_sesion3.json`: Mediciones reales consecutivas de latencia cliente (`time.monotonic()`) y tokens.
-- `evidencias/sesion-04/traza_langfuse.json` & `traza_langfuse.png`: Traza de observabilidad e imagen del panel de Langfuse.
-
-Para regenerar las evidencias reales:
-```powershell
-python scripts/generate_session2_evidence.py
-python scripts/generate_session3_evidence.py
-python scripts/generate_session4_evidence.py
-```
+Ubicación de evidencias reales colectadas por sesión:
+- **Sesión 2:** `evidencias/sesion-02/consulta_jpl_real.json` (consulta real y normalización de NASA/JPL CAD API).
+- **Sesión 3:** `evidencias/sesion-03/respuesta_bedrock_real.json` y `mediciones_sesion3.json` (respuesta completa y 3 mediciones reales de latencia/tokens).
+- **Sesión 4:** `evidencias/sesion-04/traza_langfuse.json` y `traza_langfuse.png` (trazabilidad y captura de panel Langfuse).
+- **Sesión 5:** `evidencias/sesion-05/evaluacion_corregida.md` y `evaluacion_corregida.json` (evaluación formal de 100 casos con DeepEval y Juez Nova Lite, 79% de aprobación).
+- **Sesión 6:** `evidencias/sesion-06/verificacion_operativa.md` (verificación de arranque, casos 401, 422 y ejecución válida real con telemetría observada de tokens y costos).
 
 ---
 
-## 7. Roadmap del Proyecto
+## 7. Solución de Problemas Frecuentes (Troubleshooting)
+
+* **`ModuleNotFoundError: No module named 'app'`:**
+  * *Causa:* El comando se ejecutó fuera del directorio del proyecto (por ejemplo, desde `C:\WINDOWS\system32`).
+  * *Solución:* Navegue a la raíz del repositorio con `cd "D:\Work\En Orbita"` antes de iniciar Uvicorn o ejecutar scripts.
+
+* **`HTTP 401 Unauthorized`:**
+  * *Causa:* La solicitud no incluye la cabecera `X-API-Key` o el valor no coincide con la variable `APP_API_KEY` de `.env`.
+  * *Solución:* En Swagger UI (`/docs`), pulse el botón verde **Authorize** en la esquina superior derecha, escriba el valor configurado en `.env` (ej. `en-orbita-key-2026`) y confirme.
+
+* **`botocore.exceptions.ProfileNotFound`:**
+  * *Causa:* El perfil local de AWS `en-orbita` no está configurado en el equipo.
+  * *Solución:* Configure el perfil ejecutando `aws configure --profile en-orbita` e ingrese las credenciales con acceso a Amazon Bedrock en `us-east-2`.
+
+* **Puerto 8000 en uso / servidor bloqueado:**
+  * *Causa:* Un proceso anterior de Uvicorn no finalizó completamente.
+  * *Solución:* En PowerShell, finalice los procesos Python huérfanos ejecutando `Stop-Process -Name "python" -Force` y reinicie el servidor.
+
+---
+
+## 8. Roadmap del Proyecto
 
 - **Sesión 1 & 2 (Completada)**: Ficha del caso, contratos E/S y consulta real a JPL CAD API.
-- **Sesión 3 (Completada)**: Flujo JPL → Bedrock Nova Lite, controles de auth (`X-API-Key`), validaciones Pydantic y 3 mediciones reales.
+- **Sesión 3 (Completada)**: Flujo JPL → Bedrock, controles de auth (`X-API-Key`), validaciones Pydantic y mediciones reales.
 - **Sesión 4 (Completada)**: Arquitectura del servicio y trazabilidad con Langfuse.
-- **Sesión 5 (Trabajo Posterior)**: Evaluación con DeepEval (G-Eval) sobre 5 casos de prueba.
-- **Sesión 6 (Trabajo Posterior)**: Demostración funcional (5 min), plan de operación final y entrega definitiva.
+- **Sesión 5 (Completada)**: Golden Dataset v2 (100 casos), evaluación DeepEval con Juez Nova Lite (79% aprobado).
+- **Sesión 6 (Completada)**: Verificación operativa final, protocolo 401/422/200, cálculo de costo observado y documentación.
+- **Entrega Definitiva (Pendiente)**: Ajustes finales posteriores a la exposición académica.
