@@ -184,7 +184,7 @@ Evaluación realizada sobre el Golden Dataset v2 autoritativo de 100 casos. A co
   - *Revisión humana indispensable:* Todo guion emitido conserva mandatoriamente `requires_human_review: true` y estado `draft_pending_review`, requiriendo validación por un editor científico antes de su difusión.
   - *Muestra de rendimiento:* Las mediciones operativas se sustentan en una muestra controlada en entorno local, sujetas a la variabilidad de latencia de red hacia los endpoints públicos de la NASA y AWS.
   - *Ausencia de despliegue en la nube:* El servicio opera exclusivamente en local y CI; la estrategia futura de despliegue en la nube todavía no ha sido seleccionada ni verificada.
-- **Versión final**: [Pendiente de confirmación del commit de cierre de la Sesión 6]
+- **Versión final**: [`8a7c470`](https://github.com/lordonez/en-orbita/commit/8a7c470f997d657f75989b5e2158a41c3225bc5a) (versión demostrable de la Sesión 6)
 
 ---
 
@@ -209,5 +209,5 @@ Cada fila apunta a una versión revisable. Los enlaces a evidencias deben funcio
 | **3** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-03/respuesta_bedrock_real.json`](../evidencias/sesion-03/respuesta_bedrock_real.json)<br>[`../evidencias/sesion-03/mediciones_sesion3.json`](../evidencias/sesion-03/mediciones_sesion3.json) | Sin observación registrada |
 | **4** | [`commit 4277e01`](https://github.com/lordonez/en-orbita/commit/4277e0159c5d8d1cb5a6125f9ea4f5893619827d) | [`../evidencias/sesion-04/traza_langfuse.json`](../evidencias/sesion-04/traza_langfuse.json)<br>[`../evidencias/sesion-04/traza_langfuse.png`](../evidencias/sesion-04/traza_langfuse.png) | Sin observación registrada |
 | **5** | [`commit c23d990`](https://github.com/lordonez/en-orbita/commit/c23d9909e503d88d9784c9e37c5b6b454ec4094f) | [`../evidencias/sesion-05/evaluacion_corregida.md`](../evidencias/sesion-05/evaluacion_corregida.md)<br>[`../evidencias/sesion-05/comparacion_antes_despues.md`](../evidencias/sesion-05/comparacion_antes_despues.md) | Alineación de rúbrica del Juez Nova Lite con ground truth. Aprobación global: 79.00%. |
-| **6 · Exposición** | Pendiente de commit | [`../evidencias/sesion-06/verificacion_operativa.md`](../evidencias/sesion-06/verificacion_operativa.md) | Verificación operativa completa (protocolo 401, 422 y 200 real), cálculo de costo observado (USD 0.000071) y documentación final. |
+| **6 · Exposición** | [`commit 8a7c470`](https://github.com/lordonez/en-orbita/commit/8a7c470f997d657f75989b5e2158a41c3225bc5a) | [`../evidencias/sesion-06/verificacion_operativa.md`](../evidencias/sesion-06/verificacion_operativa.md) | Versión preparada para la exposición. Observaciones de la exposición pendientes. |
 | **Domingo posterior · Final** | [commit o ZIP final] | [paquete completo] | [correcciones incorporadas] |
